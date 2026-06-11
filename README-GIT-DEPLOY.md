@@ -1,6 +1,6 @@
 # Cepter Prompt Atelier Git Deploy
 
-このフォルダはCloudflare PagesのGit連携デプロイ用です。
+このフォルダはCloudflare WorkersのGit連携デプロイ用です。
 DashboardのDirect Upload用フォルダとは分けています。
 
 ## 狙い
@@ -11,7 +11,7 @@ Git連携版では、生成プロンプト本文を短くし、AIが読むべき
 https://cepter-atelier.com/ai/dossier/<token>.md
 ```
 
-このURLはPages FunctionsでMarkdownを直接返します。
+このURLはWorkerがMarkdownを直接返します。
 Dossierには以下を含めます。
 
 - 相談内容
@@ -22,16 +22,18 @@ Dossierには以下を含めます。
 - 秘蔵ナレッジ
 - 公開ナレッジ
 
-## Cloudflare Pages 設定
+## Cloudflare Workers 設定
 
-Git連携でこのフォルダをリポジトリとして接続します。
+このリポジトリは `wrangler.jsonc` を使って、Workers + Static Assetsとしてデプロイします。
 
-- Framework preset: None
 - Build command: 空欄
-- Build output directory: `/`
+- Deploy command: `npx wrangler deploy`
 - Root directory: リポジトリ直下
+- Static assets directory: `.` (`wrangler.jsonc` の `assets.directory`)
+- Worker entry: `src/worker.js`
 
-`functions/` ディレクトリはCloudflare Pages Functionsとして認識されます。
+`functions/` ディレクトリは、Pages Functions用の旧構成です。
+現在のCloudflare側が `npx wrangler deploy` を実行している場合、動的URLは `src/worker.js` が担当します。
 
 ## 主な動的URL
 
@@ -40,18 +42,35 @@ Git連携でこのフォルダをリポジトリとして接続します。
 - `/ai/knowledge/public.md`
   - 公開ナレッジだけをMarkdownで返します。
 
+## ユーザーに見せるURL
+
+`*.workers.dev` はCloudflareの仮URLです。
+アカウントサブドメインが入るため、公開導線や生成プロンプトでは使いません。
+
+本番ではWorkerにカスタムドメインを割り当てます。
+
+```text
+https://cepter-atelier.com/
+```
+
+Cloudflare Dashboardでは、Workerの `Settings > Domains & Routes` から `cepter-atelier.com` をCustom Domainとして追加します。
+カスタムドメインで動作確認できたら、同じ画面で `workers.dev` をDisableしておくと、仮URLを表に出しにくくできます。
+
 ## 環境変数
 
 未設定でも公開anon keyのデフォルト値で動きます。
-運用ではCloudflare PagesのEnvironment variablesに以下を設定できます。
+運用ではCloudflare WorkersのVariablesに以下を設定できます。
 
 - `SUPABASE_URL`
 - `SUPABASE_ANON_KEY`
 
 ## デプロイ後の確認
 
-1. トップページを開く。
-2. `プロンプト生成` を押す。
-3. 生成されたプロンプトのDossier URLが `/ai/dossier/<token>.md` になっていることを確認する。
-4. Dossier URLをブラウザで開き、Markdown本文が表示されることを確認する。
-5. ChatGPTなどに短いプロンプトを投げ、Dossier内容を取得できるか確認する。
+1. GitHubに `wrangler.jsonc` と `src/worker.js` が入っていることを確認する。
+2. CloudflareのDeploymentsで再デプロイが成功していることを確認する。
+3. `https://cepter-atelier.com/ai/knowledge/public.md` を開き、Markdown本文が表示されることを確認する。
+4. トップページを開く。
+5. `プロンプト生成` を押す。
+6. 生成されたプロンプトのDossier URLが `/ai/dossier/<token>.md` になっていることを確認する。
+7. Dossier URLをブラウザで開き、Markdown本文が表示されることを確認する。
+8. ChatGPTなどに短いプロンプトを投げ、Dossier内容を取得できるか確認する。
