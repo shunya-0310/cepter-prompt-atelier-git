@@ -30,10 +30,10 @@ Dossierには以下を含めます。
 - Deploy command: `npx wrangler deploy --config wrangler.jsonc`
 - Root directory: リポジトリ直下
 - Static assets directory: `public` (`wrangler.jsonc` の `assets.directory`)
-- Worker entry: `src/worker.js`
+- Worker entry: `worker.js`
 
 `functions/` ディレクトリは、Pages Functions用の旧構成です。
-現在のCloudflare側が `npx wrangler deploy` を実行している場合、動的URLは `src/worker.js` が担当します。
+現在のCloudflare側が `npx wrangler deploy` を実行している場合、動的URLは `worker.js` が担当します。
 GitHub上に古い `functions/` が残っていても、`wrangler.jsonc` が正しく読まれていれば使われません。
 
 ## 主な動的URL
@@ -67,7 +67,7 @@ Cloudflare Dashboardでは、Workerの `Settings > Domains & Routes` から `cep
 
 ## デプロイ後の確認
 
-1. GitHubに `wrangler.jsonc`、`src/worker.js`、`public/` が入っていることを確認する。
+1. GitHubに `wrangler.jsonc`、`worker.js`、`public/` が入っていることを確認する。
 2. CloudflareのDeploy commandを `npx wrangler deploy --config wrangler.jsonc` にする。
 3. CloudflareのDeploymentsで再デプロイが成功していることを確認する。
 4. ビルドログに `Create wrangler.jsonc` が出ていないことを確認する。
