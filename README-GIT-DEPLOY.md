@@ -77,3 +77,4 @@ Cloudflare Dashboardでは、Workerの `Settings > Domains & Routes` から `cep
 8. 生成されたプロンプトのDossier URLが `/ai/dossier/<token>.md` になっていることを確認する。
 9. Dossier URLをブラウザで開き、Markdown本文が表示されることを確認する。
 10. ChatGPTなどに短いプロンプトを投げ、Dossier内容を取得できるか確認する。
+11. 
