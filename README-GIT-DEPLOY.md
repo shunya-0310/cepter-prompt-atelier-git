@@ -27,13 +27,14 @@ Dossierには以下を含めます。
 このリポジトリは `wrangler.jsonc` を使って、Workers + Static Assetsとしてデプロイします。
 
 - Build command: 空欄
-- Deploy command: `npx wrangler deploy`
+- Deploy command: `npx wrangler deploy --config wrangler.jsonc`
 - Root directory: リポジトリ直下
-- Static assets directory: `.` (`wrangler.jsonc` の `assets.directory`)
+- Static assets directory: `public` (`wrangler.jsonc` の `assets.directory`)
 - Worker entry: `src/worker.js`
 
 `functions/` ディレクトリは、Pages Functions用の旧構成です。
 現在のCloudflare側が `npx wrangler deploy` を実行している場合、動的URLは `src/worker.js` が担当します。
+GitHub上に古い `functions/` が残っていても、`wrangler.jsonc` が正しく読まれていれば使われません。
 
 ## 主な動的URL
 
@@ -66,11 +67,13 @@ Cloudflare Dashboardでは、Workerの `Settings > Domains & Routes` から `cep
 
 ## デプロイ後の確認
 
-1. GitHubに `wrangler.jsonc` と `src/worker.js` が入っていることを確認する。
-2. CloudflareのDeploymentsで再デプロイが成功していることを確認する。
-3. `https://cepter-atelier.com/ai/knowledge/public.md` を開き、Markdown本文が表示されることを確認する。
-4. トップページを開く。
-5. `プロンプト生成` を押す。
-6. 生成されたプロンプトのDossier URLが `/ai/dossier/<token>.md` になっていることを確認する。
-7. Dossier URLをブラウザで開き、Markdown本文が表示されることを確認する。
-8. ChatGPTなどに短いプロンプトを投げ、Dossier内容を取得できるか確認する。
+1. GitHubに `wrangler.jsonc`、`src/worker.js`、`public/` が入っていることを確認する。
+2. CloudflareのDeploy commandを `npx wrangler deploy --config wrangler.jsonc` にする。
+3. CloudflareのDeploymentsで再デプロイが成功していることを確認する。
+4. ビルドログに `Create wrangler.jsonc` が出ていないことを確認する。
+5. `https://cepter-atelier.com/ai/knowledge/public.md` を開き、Markdown本文が表示されることを確認する。
+6. トップページを開く。
+7. `プロンプト生成` を押す。
+8. 生成されたプロンプトのDossier URLが `/ai/dossier/<token>.md` になっていることを確認する。
+9. Dossier URLをブラウザで開き、Markdown本文が表示されることを確認する。
+10. ChatGPTなどに短いプロンプトを投げ、Dossier内容を取得できるか確認する。
