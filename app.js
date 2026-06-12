@@ -1482,6 +1482,10 @@ function publicKnowledgeUrl() {
   return new URL("./ai/knowledge/public.md", location.href).href;
 }
 
+function aiReferenceLinksMarkdown() {
+  return AI_REFERENCES.map((ref) => `- ${ref.label}: ${absoluteUrl(ref.url)}`).join("\n");
+}
+
 function privateKnowledgeShareUrl(token) {
   return `${shareContextUrl(token)}#private-knowledge`;
 }
@@ -1736,10 +1740,10 @@ function selectedCards() {
   return state.cards.filter((card) => Number(card.owned || 0) > 0 || Number(card.book || 0) > 0);
 }
 
-function buildContextMarkdown({ privateKnowledgeUrl = "" } = {}) {
+function buildContextMarkdown({ privateKnowledgeUrl = "", includeExternalReferenceLinks = true } = {}) {
   const { bookCount, ownedTotal, usedKinds, missingCount } = getTotals();
   const activeBook = getActiveBook();
-  const references = AI_REFERENCES.map((ref) => `- ${ref.label}: ${absoluteUrl(ref.url)}`).join("\n");
+  const references = aiReferenceLinksMarkdown();
   const bookCards = state.cards
     .filter((card) => Number(card.book || 0) > 0)
     .map((card) => {
@@ -1761,10 +1765,8 @@ function buildContextMarkdown({ privateKnowledgeUrl = "" } = {}) {
     .map((card) => `- ${cardContextLine(card)} / 所持:${card.owned}`)
     .join("\n");
   const knowledgeBankUrl = publicKnowledgeUrl();
-
-  return `# カルドセプト ビギンズ AIクエリコンテキスト
-
-## 必ず確認するAI Reference
+  const externalReferenceSection = includeExternalReferenceLinks
+    ? `## 必ず確認するAI Reference
 回答前に、以下のAI Referenceを必ず確認してください。リンク先には公式サイト、基本ルール、カードデータ、初心者向け評価軸があります。
 
 ${references}
@@ -1777,7 +1779,12 @@ ${references}
 ## 秘蔵ナレッジURL
 秘蔵ナレッジも量が増える可能性があるため、この共有コンテキストには本文を埋め込んでいません。以下の限定公開URLを開き、クエリ投稿者本人の好み・ストラテジーとして参照してください。
 
-- 秘蔵ナレッジ: ${privateKnowledgeUrl || "未発行"}
+- 秘蔵ナレッジ: ${privateKnowledgeUrl || "未発行"}`
+    : "";
+
+  return `# カルドセプト ビギンズ AIクエリコンテキスト
+
+${externalReferenceSection}
 
 ## このクエリの目的
 このページは、ユーザーが自分のAIにカルドセプト ビギンズのブッククエリを投げるための限定公開コンテキストです。
@@ -1904,7 +1911,7 @@ function buildDossierMarkdown({ privateKnowledgeMarkdown = "" } = {}) {
 
 ${buildInlineReferenceSummary()}
 
-${buildContextMarkdown({ privateKnowledgeUrl: "このDossier内の「秘蔵ナレッジ」節を参照してください。" })}
+${buildContextMarkdown({ includeExternalReferenceLinks: false })}
 
 ## 秘蔵ナレッジ
 {#private-knowledge}
@@ -1914,14 +1921,30 @@ ${privateKnowledgeMarkdown}`;
 
 function buildPrompt() {
   const url = state.shareUrl || "先に「プロンプト生成」を押してURLを作成してください。";
+  const references = aiReferenceLinksMarkdown();
+  const knowledgeBankUrl = publicKnowledgeUrl();
   return `カルドセプト ビギンズのブック構築とストラテジーについて相談したいです。
 
-以下のDossier URLをGETしてMarkdown本文を読み、内容に基づいて回答してください。
+まず以下のURLを直接開いて、Markdown本文を読んでください。検索結果ではなくURL本文を取得してください。
 
-${url}
+## 最優先Dossier URL
+- 相談Dossier: ${url}
 
-Dossierには、相談内容、ブック内カード、所持候補、ユーザーのストラテジー、秘蔵ナレッジ、公開ナレッジ、回答方針がまとまっています。
-URLを取得できない場合だけ、このプロンプト本文から分かる範囲で回答してください。
+## 補助AI Reference URL
+${references}
+
+## 公開ナレッジURL
+- セプターナレッジバンク: ${knowledgeBankUrl}
+
+## 参照情報の優先順位
+1. Dossier内の相談者本人の情報
+2. 公開ナレッジ
+3. ユーザー指定参考URL
+4. 公式・AI Reference
+
+Dossierには、相談内容、ブック内カード、所持候補、ユーザーのストラテジー、秘蔵ナレッジ、回答方針がまとまっています。
+公開ナレッジURLには他セプターの共有ナレッジがあります。相談者本人の状況と矛盾する場合は、Dossier内の相談者本人の情報を優先してください。
+取得できないURLがある場合は、そのURLの貼り付けを要求せず、読めたURLとこのプロンプト本文から分かる範囲で回答してください。
 
 ## 回答形式
 回答では、勝ち筋、抜く候補、足す候補、所持カードが足りない場合の代替案、プレイ中に意識することを分けて説明してください。
